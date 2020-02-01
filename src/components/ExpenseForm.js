@@ -1,49 +1,72 @@
 import React from "react";
-import moment from 'moment';
-import { SingleDatePicker } from 'react-dates';
-import 'react-dates/initialize'
-import 'react-dates/lib/css/_datepicker.css';
+import moment from "moment";
+import { SingleDatePicker } from "react-dates";
+import "react-dates/initialize";
+import "react-dates/lib/css/_datepicker.css";
 
-const now = moment().format('MMM Do, YYYY');
+const now = moment().format("MMM Do, YYYY");
 
 export default class ExpenseForm extends React.Component {
   state = {
-    description: "",
+    description: '',
     amount: '',
-    note: "",
+    note: '',
     createdAt: moment(),
-    calendarFocused: false
+    calendarFocused: false,
+    error: ''
   };
 
-  onDescriptionChange = (e) => {
+  onDescriptionChange = e => {
     const description = e.target.value;
-    this.setState(() => ({ description }))
-  }
+    this.setState(() => ({ description }));
+  };
 
-  onNoteChange = (e) => {
+  onNoteChange = e => {
     const note = e.target.value;
-    this.setState(() => ({ note }))
-  }
+    this.setState(() => ({ note }));
+  };
 
-  onAmountChange = (e) => {
+  onAmountChange = e => {
     const amount = e.target.value;
-    if(amount.match(/^\d*(\.\d{0,2})?$/)){
-        this.setState(() => ({ amount}))
+    if (!amount || amount.match(/^\d{1,}(\.\d{0,2})?$/)) {
+      this.setState(() => ({ amount }));
     }
-  }
+  };
 
-  onDateChange = (createdAt) => {
-    this.setState(() => ({ createdAt }))
-  }
+  onDateChange = createdAt => {
+    if (createdAt) {
+      this.setState(() => ({ createdAt }));
+    }
+  };
 
   onFocusChange = ({ focused }) => {
-      this.setState(() => ({ calendarFocused: focused }));
+    this.setState(() => ({ calendarFocused: focused }));
+  };
+
+  onSubmit = (e) => {
+      e.preventDefault();
+      if(!this.state.description || !this.state.amount) {
+        if(!this.state.description) {
+            this.setState(() => ({ error: 'Please Adding Description' }));
+        } else if (!this.state.amount) {
+            this.setState(() => ({ error: "Please Adding amount" }));
+        }
+      } else {
+        this.setState(() => ({ error: '' }));
+        this.props.onSubmit({
+            description: this.state.description,
+            amount: parseFloat(this.state.amount, 10) * 100,
+            note: this.state.note,
+            createdAt: this.state.createdAt.valueOf()
+        })
+      }
   }
 
   render() {
     return (
       <div>
-        <form>
+        <form onSubmit={this.onSubmit}>
+            {this.state.error && <p>{this.state.error}</p>}
           <div>
             <label htmlFor="description">Description : </label>
             <input
@@ -70,12 +93,12 @@ export default class ExpenseForm extends React.Component {
           <div>
             <label htmlFor="createAt">Create At : </label>
             <SingleDatePicker
-                date={this.state.createdAt}
-                onDateChange={this.onDateChange}
-                focused={this.state.calendarFocused}
-                onFocusChange={this.onFocusChange}
-                numberOfMonths={1}
-                isOutsideRange={() => false}
+              date={this.state.createdAt}
+              onDateChange={this.onDateChange}
+              focused={this.state.calendarFocused}
+              onFocusChange={this.onFocusChange}
+              numberOfMonths={1}
+              isOutsideRange={() => false}
             />
           </div>
           <div>
